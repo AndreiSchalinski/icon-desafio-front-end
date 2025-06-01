@@ -1,16 +1,22 @@
 <template>
   <v-sheet border rounded elevation="2">
     <v-data-table
-      :headers="headers"
-      :hide-default-footer="books.length < 11"
-      :items="books"
+      :headers="movimento.listHeader"
+      :items="movimento.listMovimentacoes"
+      :hide-default-footer="true"
+      no-data-text="Sem movimentações cadastradas"
     >
       <template v-slot:top>
         <v-toolbar flat>
           <v-toolbar-title>
-            <v-icon color="medium-emphasis" icon="mdi-book-multiple" size="x-small" start></v-icon>
+            <v-icon
+              color="medium-emphasis"
+              icon="mdi-book-multiple"
+              size="x-small"
+              start
+            ></v-icon>
 
-            Todos as movimentações
+            Todas as movimentações
           </v-toolbar-title>
 
           <v-btn
@@ -19,65 +25,170 @@
             rounded="lg"
             text="Movimentação"
             border
-            @click="add"
+            @click="movimento.adicionar()"
           ></v-btn>
         </v-toolbar>
       </template>
 
-      <template v-slot:item.title="{ value }">
-        <v-chip :text="value" border="thin opacity-25" prepend-icon="mdi-book" label>
-          <template v-slot:prepend>
-            <v-icon color="medium-emphasis"></v-icon>
-          </template>
-        </v-chip>
-      </template>
-
       <template v-slot:item.actions="{ item }">
-        <div class="d-flex ga-2 justify-end">
-          <v-icon color="medium-emphasis" icon="mdi-pencil" size="small" @click="edit(item.id)"></v-icon>
+        <v-menu>
+          <template v-slot:activator="{ props }">
+            <v-btn
+              icon="mdi-dots-vertical"
+              variant="text"
+              v-bind="props"
+            ></v-btn>
+          </template>
 
-          <v-icon color="medium-emphasis" icon="mdi-delete" size="small" @click="remove(item.id)"></v-icon>
-        </div>
-      </template>
-
-      <template v-slot:no-data>
-        <v-btn
-          prepend-icon="mdi-backup-restore"
-          rounded="lg"
-          text="Reset data"
-          variant="text"
-          border
-          @click="reset"
-        ></v-btn>
+          <v-list>
+            <v-list-item>
+              <v-btn
+                width="100%"
+                class="text-caption"
+                prepend-icon="mdi-pencil"
+                text="Editar"
+                variant="flat"
+                color="black"
+                size="small"
+                rounded="lg"
+                @click="movimento.editar(item)"
+              ></v-btn>
+            </v-list-item>
+            <v-list-item>
+              <v-btn
+                width="100%"
+                class="text-caption"
+                prepend-icon="mdi-delete"
+                text="Excluir"
+                variant="flat"
+                color="red"
+                size="small"
+                rounded="lg"
+                @click="movimento.remover(item)"
+              ></v-btn>
+            </v-list-item>
+          </v-list>
+        </v-menu>
       </template>
     </v-data-table>
   </v-sheet>
 
-  <v-dialog v-model="dialog" max-width="500">
+  <v-dialog
+    v-if="!movimento.isRemove"
+    v-model="movimento.dialog"
+    width="800px"
+    height="1000px"
+  >
     <v-card
-      :subtitle="`${isEditing ? 'Update' : 'Create'} your favorite book`"
-      :title="`${isEditing ? 'Edit' : 'Add'} a Book`"
+      :subtitle="`${
+        movimento.isEditing ? 'Editar' : 'Adicionar'
+      } movimentação de estoque`"
+      :title="`${
+        movimento.isEditing ? 'Editar' : 'Adicionar'
+      } movimentação de estoque`"
     >
       <template v-slot:text>
+        <v-item-group selected-class="bg-primary">
+          <v-container>
+            <v-row>
+              <v-col cols="12" class="text-center"
+                ><p style="font-size: 25px">
+                  Selecione o tipo de movimentação
+                </p></v-col
+              >
+            </v-row>
+            <v-row>
+              <v-col v-for="n in 2" :key="n" cols="12" md="6">
+                <v-item v-slot="{ isSelected, selectedClass, toggle }">
+                  <v-card
+                    :class="['d-flex align-center', selectedClass]"
+                    height="100"
+                    width="100%"
+                    dark
+                    elevation="1"
+                    @click="
+                      () => {
+                        toggle();
+                        movimento.handleChange(n, isSelected);
+                      }
+                    "
+                  >
+                    <div
+                      class="text-h3 flex-grow-1 text-center"
+                      style="font-size: 18px !important"
+                    >
+                      {{
+                        isSelected
+                          ? n == 1
+                            ? `ENTRADA`
+                            : `SAIDA`
+                          : n == 1
+                          ? `ENTRADA`
+                          : `SAIDA`
+                      }}
+                    </div>
+                  </v-card>
+                </v-item>
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-item-group>
+
+        <v-row class="mt-10">
+          <v-col cols="12" md="4">
+            <v-number-input
+              v-model="movimento.movimentacao.valorVenda"
+              :min="0.01"
+              label="Valor de venda"
+              :precision="2"
+            ></v-number-input>
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-date-input
+              label="Data venda"
+              v-model="movimento.movimentacao.dataVenda"
+              
+            ></v-date-input>
+          </v-col>
+          <v-col cols="12" md="4">
+            <v-number-input
+              v-model="movimento.movimentacao.quantidadeMovimentada"
+              :min="1"
+              label="Quantidade movimentada"
+            ></v-number-input>
+          </v-col>
+        </v-row>
+
         <v-row>
           <v-col cols="12">
-            <v-text-field v-model="record.title" label="Title"></v-text-field>
-          </v-col>
+            <v-sheet border rounded elevation="2"
+              ><v-data-table
+                v-model="movimento.movimentacao.produto"
+                :headers="movimento.headersProdutos"
+                :items="movimento.listProdutos"
+                item-value="name"
+                items-per-page="5"
+                return-object
+                show-select
+                select-strategy="single"
+                no-data-text="Sem produtos selecionados para movimentação"
+                hide-default-footer
+                ><template v-slot:top>
+                  <v-toolbar flat>
+                    <v-toolbar-title class="text-caption">
+                      <v-icon
+                        color="medium-emphasis"
+                        icon="mdi-book-multiple"
+                        size="x-small"
+                        start
+                      ></v-icon>
 
-          <v-col cols="12" md="6">
-            <v-text-field v-model="record.author" label="Author"></v-text-field>
-          </v-col>
-
-          <v-col cols="12" md="6">
-            <v-select v-model="record.genre" :items="['Fiction', 'Dystopian', 'Non-Fiction', 'Sci-Fi']" label="Genre"></v-select>
-          </v-col>
-
-          <v-col cols="12" md="6">
-            <v-number-input v-model="record.year" :max="adapter.getYear(adapter.date())" :min="1" label="Year"></v-number-input>
-          </v-col>
-
-          <v-col cols="12" md="6">
-            <v-number-input v-model="record.pages" :min="1" label="Pages"></v-number-input>
+                      Todos os produtos
+                    </v-toolbar-title>
+                  </v-toolbar>
+                </template></v-data-table
+              ></v-sheet
+            >
           </v-col>
         </v-row>
       </template>
@@ -85,90 +196,63 @@
       <v-divider></v-divider>
 
       <v-card-actions class="bg-surface-light">
-        <v-btn text="Cancel" variant="plain" @click="dialog = false"></v-btn>
+        <v-btn
+          class="text-caption"
+          text="Cancelar"
+          variant="plain"
+          @click="movimento.dialog = false"
+        ></v-btn>
 
         <v-spacer></v-spacer>
 
-        <v-btn text="Save" @click="save"></v-btn>
+        <v-btn
+          class="text-caption"
+          text="Salvar"
+          @click="movimento.salvar()"
+        ></v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <v-dialog v-else v-model="movimento.dialog" max-width="500">
+    <v-card
+      subtitle="Atenção, você removerá tipo produto!"
+      title="Deletar tipo de produto"
+    >
+      <template v-slot:text>
+        <v-row>
+          <v-col cols="12" class="text-center">
+            {{ `Deletar ?` }}
+          </v-col>
+        </v-row>
+      </template>
+
+      <v-divider />
+
+      <v-card-actions class="bg-surface-light">
+        <v-btn
+          class="text-caption"
+          text="Cancelar"
+          variant="plain"
+          @click="(movimento.dialog = false), (movimento.isRemove = false)"
+        />
+        <v-spacer />
+        <v-btn
+          class="text-caption"
+          text="Deletar"
+          @click="movimento.delete()"
+        />
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 <script setup>
-  import { onMounted, ref, shallowRef } from 'vue'
-  import { useDate } from 'vuetify'
+import { movimentacaoStore } from "@/store/movimentacao.store";
+import { onMounted } from "vue";
 
-  const adapter = useDate()
+const movimento = movimentacaoStore();
 
-  const DEFAULT_RECORD = { title: '', author: '', genre: '', year: adapter.getYear(adapter.date()), pages: 1 }
-
-  const books = ref([])
-  const record = ref(DEFAULT_RECORD)
-  const dialog = shallowRef(false)
-  const isEditing = shallowRef(false)
-
-  const headers = [
-    { title: 'Title', key: 'title', align: 'start' },
-    { title: 'Author', key: 'author' },
-    { title: 'Genre', key: 'genre' },
-    { title: 'Year', key: 'year', align: 'end' },
-    { title: 'Pages', key: 'pages', align: 'end' },
-    { title: 'Actions', key: 'actions', align: 'end', sortable: false },
-  ]
-
-  onMounted(() => {
-    reset()
-  })
-
-  function add () {
-    isEditing.value = false
-    record.value = DEFAULT_RECORD
-    dialog.value = true
-  }
-
-  function edit (id) {
-    isEditing.value = true
-
-    const found = books.value.find(book => book.id === id)
-
-    record.value = {
-      id: found.id,
-      title: found.title,
-      author: found.author,
-      genre: found.genre,
-      year: found.year,
-      pages: found.pages,
-    }
-
-    dialog.value = true
-  }
-
-  function remove (id) {
-    const index = books.value.findIndex(book => book.id === id)
-    books.value.splice(index, 1)
-  }
-
-  function save () {
-    if (isEditing.value) {
-      const index = books.value.findIndex(book => book.id === record.value.id)
-      books.value[index] = record.value
-    } else {
-      record.value.id = books.value.length + 1
-      books.value.push(record.value)
-    }
-
-    dialog.value = false
-  }
-
-  function reset () {
-    dialog.value = false
-    record.value = DEFAULT_RECORD
-    books.value = [
-      { id: 1, title: 'To Kill a Mockingbird', author: 'Harper Lee', genre: 'Fiction', year: 1960, pages: 281 },
-      { id: 2, title: '1984', author: 'George Orwell', genre: 'Dystopian', year: 1949, pages: 328 },
-      { id: 3, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', genre: 'Fiction', year: 1925, pages: 180 },
-      { id: 4, title: 'Sapiens', author: 'Yuval Noah Harari', genre: 'Non-Fiction', year: 2011, pages: 443 },
-      { id: 5, title: 'Dune', author: 'Frank Herbert', genre: 'Sci-Fi', year: 1965, pages: 412 },
-    ]
-  }
+onMounted(() => {
+  movimento.reset();
+  movimento.carregarLista();
+});
 </script>
