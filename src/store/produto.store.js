@@ -15,7 +15,7 @@ export const produtoStore = defineStore("produtoStore", {
     listHeader: [
       { title: "Cód", key: "codigo", align: "start" },
       { title: "Descrição", key: "descricao" },
-      { title: "Tipo de produto", key: "tipoProdutoId" },
+      { title: "Tipo de produto", key: "tipoProduto.nome" },
       { title: "Preço no fornecedor", key: "precoFornecedor" },
       { title: "Quantidade", key: "quantidade" },
       { title: "Ações", key: "actions", align: "end", sortable: false },
@@ -25,7 +25,10 @@ export const produtoStore = defineStore("produtoStore", {
     produto: {
       codigo: null,
       descricao: null,
-      tipoProdutoId: null,
+      tipoProduto: {
+        id: null,
+        nome: null,
+      },
       precoFornecedor: null,
       quantidade: null,
     },
@@ -36,7 +39,10 @@ export const produtoStore = defineStore("produtoStore", {
       this.produto = {
         codigo: null,
         descricao: null,
-        tipoProdutoId: null,
+        tipoProduto: {
+          id: null,
+          nome: null,
+        },
         precoFornecedor: null,
         quantidade: null,
       };
@@ -45,22 +51,22 @@ export const produtoStore = defineStore("produtoStore", {
 
     async salvar() {
       if (this.isEditing) {
-        await editarProduto(this.tipoProduto);
+        await editarProduto(this.produto);
       } else {
-        await salvarProduto(this.tipoProduto);
+        await salvarProduto(this.produto);
       }
       this.reset();
       this.carregarLista();
     },
 
     editar(item) {
-      this.produto = item;
+      this.produto = { ...item };
       this.isEditing = true;
       this.dialog = true;
     },
 
     remover(item) {
-      this.tipoProduto = item;
+      this.produto = item;
       this.isRemove = true;
       this.dialog = true;
     },
