@@ -1,14 +1,20 @@
 <template>
   <v-sheet border rounded elevation="2">
     <v-data-table
-      :headers="headers"
-      :hide-default-footer="books.length < 11"
-      :items="books"
+      :headers="produto.listHeader"
+      :items="produto.listProdutos"
+      :hide-default-footer="true"
+      no-data-text="Sem tipos de produtos cadastrados"
     >
       <template v-slot:top>
         <v-toolbar flat>
           <v-toolbar-title>
-            <v-icon color="medium-emphasis" icon="mdi-book-multiple" size="x-small" start></v-icon>
+            <v-icon
+              color="medium-emphasis"
+              icon="mdi-book-multiple"
+              size="x-small"
+              start
+            ></v-icon>
 
             Todos os produtos
           </v-toolbar-title>
@@ -17,67 +23,102 @@
             class="me-2 text-caption"
             prepend-icon="mdi-plus"
             rounded="lg"
-            text="Produto"
+            text="Tipo produto"
             border
-            @click="add"
+            @click="produto.adicionar()"
           ></v-btn>
         </v-toolbar>
       </template>
 
-      <template v-slot:item.title="{ value }">
-        <v-chip :text="value" border="thin opacity-25" prepend-icon="mdi-book" label>
-          <template v-slot:prepend>
-            <v-icon color="medium-emphasis"></v-icon>
-          </template>
-        </v-chip>
-      </template>
-
       <template v-slot:item.actions="{ item }">
-        <div class="d-flex ga-2 justify-end">
-          <v-icon color="medium-emphasis" icon="mdi-pencil" size="small" @click="edit(item.id)"></v-icon>
+        <v-menu>
+          <template v-slot:activator="{ props }">
+            <v-btn
+              icon="mdi-dots-vertical"
+              variant="text"
+              v-bind="props"
+            ></v-btn>
+          </template>
 
-          <v-icon color="medium-emphasis" icon="mdi-delete" size="small" @click="remove(item.id)"></v-icon>
-        </div>
-      </template>
-
-      <template v-slot:no-data>
-        <v-btn
-          prepend-icon="mdi-backup-restore"
-          rounded="lg"
-          text="Reset data"
-          variant="text"
-          border
-          @click="reset"
-        ></v-btn>
+          <v-list>
+            <v-list-item>
+              <v-btn
+                width="100%"
+                class="text-caption"
+                prepend-icon="mdi-pencil"
+                text="Editar"
+                variant="flat"
+                color="black"
+                size="small"
+                rounded="lg"
+                @click="produto.editar(item)"
+              ></v-btn>
+            </v-list-item>
+            <v-list-item>
+              <v-btn
+                width="100%"
+                class="text-caption"
+                prepend-icon="mdi-delete"
+                text="Excluir"
+                variant="flat"
+                color="red"
+                size="small"
+                rounded="lg"
+                @click="produto.remover(item)"
+              ></v-btn>
+            </v-list-item>
+          </v-list>
+        </v-menu>
       </template>
     </v-data-table>
   </v-sheet>
 
-  <v-dialog v-model="dialog" max-width="500">
+  <v-dialog v-if="!produto.isRemove" v-model="produto.dialog" max-width="500">
     <v-card
-      :subtitle="`${isEditing ? 'Update' : 'Create'} your favorite book`"
-      :title="`${isEditing ? 'Edit' : 'Add'} a Book`"
+      :subtitle="`${produto.isEditing ? 'Editar' : 'Adicionar'} produto`"
+      :title="`${produto.isEditing ? 'Editar' : 'Adicionar'} produto`"
     >
       <template v-slot:text>
         <v-row>
           <v-col cols="12">
-            <v-text-field v-model="record.title" label="Title"></v-text-field>
+            <v-text-field
+              v-model="produto.produto.codigo"
+              label="Código"
+            ></v-text-field>
           </v-col>
 
           <v-col cols="12" md="6">
-            <v-text-field v-model="record.author" label="Author"></v-text-field>
+            <v-text-field
+              v-model="produto.produto.descricao"
+              label="Descrição"
+            ></v-text-field>
           </v-col>
 
           <v-col cols="12" md="6">
-            <v-select v-model="record.genre" :items="['Fiction', 'Dystopian', 'Non-Fiction', 'Sci-Fi']" label="Genre"></v-select>
+            <v-select
+              v-model="produto.produto.tipoProdutoId"
+              :items="['Fiction', 'Dystopian', 'Non-Fiction', 'Sci-Fi']"
+              label="Tipo de produto"
+              item-title="text"
+              item-value="value"
+            ></v-select>
           </v-col>
 
           <v-col cols="12" md="6">
-            <v-number-input v-model="record.year" :max="adapter.getYear(adapter.date())" :min="1" label="Year"></v-number-input>
+            <v-number-input
+              v-model="produto.produto.precoFornecedor"
+              :max="adapter.getYear(adapter.date())"
+              :min="1"
+              label="Preço no fornecedor"
+            ></v-number-input>
           </v-col>
 
           <v-col cols="12" md="6">
-            <v-number-input v-model="record.pages" :min="1" label="Pages"></v-number-input>
+            <v-number-input
+              v-model="produto.produto.quantidade"
+              :min="1"
+              label="Quantidade"
+            ></v-number-input>
           </v-col>
         </v-row>
       </template>
@@ -85,90 +126,60 @@
       <v-divider></v-divider>
 
       <v-card-actions class="bg-surface-light">
-        <v-btn text="Cancel" variant="plain" @click="dialog = false"></v-btn>
+        <v-btn
+          class="text-caption"
+          text="Cancelar"
+          variant="plain"
+          @click="produto.dialog = false"
+        ></v-btn>
 
         <v-spacer></v-spacer>
 
-        <v-btn text="Save" @click="save"></v-btn>
+        <v-btn
+          class="text-caption"
+          text="Salvar"
+          @click="produto.salvar()"
+        ></v-btn>
+      </v-card-actions>
+    </v-card>
+  </v-dialog>
+  <v-dialog v-else v-model="produto.dialog" max-width="500">
+    <v-card
+      subtitle="Atenção, você removerá tipo produto!"
+      title="Deletar tipo de produto"
+    >
+      <template v-slot:text>
+        <v-row>
+          <v-col cols="12" class="text-center">
+            {{ `Deletar ${produto.produto.descricao}?` }}
+          </v-col>
+        </v-row>
+      </template>
+
+      <v-divider />
+
+      <v-card-actions class="bg-surface-light">
+        <v-btn
+          class="text-caption"
+          text="Cancelar"
+          variant="plain"
+          @click="(produto.dialog = false), (produto.isRemove = false)"
+        />
+        <v-spacer />
+        <v-btn class="text-caption" text="Deletar" @click="produto.delete()" />
       </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
 <script setup>
-  import { onMounted, ref, shallowRef } from 'vue'
-  import { useDate } from 'vuetify'
+import { produtoStore } from "@/store/produto.store";
+import { onMounted } from "vue";
 
-  const adapter = useDate()
+const produto = produtoStore();
 
-  const DEFAULT_RECORD = { title: '', author: '', genre: '', year: adapter.getYear(adapter.date()), pages: 1 }
-
-  const books = ref([])
-  const record = ref(DEFAULT_RECORD)
-  const dialog = shallowRef(false)
-  const isEditing = shallowRef(false)
-
-  const headers = [
-    { title: 'Title', key: 'title', align: 'start' },
-    { title: 'Author', key: 'author' },
-    { title: 'Genre', key: 'genre' },
-    { title: 'Year', key: 'year', align: 'end' },
-    { title: 'Pages', key: 'pages', align: 'end' },
-    { title: 'Actions', key: 'actions', align: 'end', sortable: false },
-  ]
-
-  onMounted(() => {
-    reset()
-  })
-
-  function add () {
-    isEditing.value = false
-    record.value = DEFAULT_RECORD
-    dialog.value = true
-  }
-
-  function edit (id) {
-    isEditing.value = true
-
-    const found = books.value.find(book => book.id === id)
-
-    record.value = {
-      id: found.id,
-      title: found.title,
-      author: found.author,
-      genre: found.genre,
-      year: found.year,
-      pages: found.pages,
-    }
-
-    dialog.value = true
-  }
-
-  function remove (id) {
-    const index = books.value.findIndex(book => book.id === id)
-    books.value.splice(index, 1)
-  }
-
-  function save () {
-    if (isEditing.value) {
-      const index = books.value.findIndex(book => book.id === record.value.id)
-      books.value[index] = record.value
-    } else {
-      record.value.id = books.value.length + 1
-      books.value.push(record.value)
-    }
-
-    dialog.value = false
-  }
-
-  function reset () {
-    dialog.value = false
-    record.value = DEFAULT_RECORD
-    books.value = [
-      { id: 1, title: 'To Kill a Mockingbird', author: 'Harper Lee', genre: 'Fiction', year: 1960, pages: 281 },
-      { id: 2, title: '1984', author: 'George Orwell', genre: 'Dystopian', year: 1949, pages: 328 },
-      { id: 3, title: 'The Great Gatsby', author: 'F. Scott Fitzgerald', genre: 'Fiction', year: 1925, pages: 180 },
-      { id: 4, title: 'Sapiens', author: 'Yuval Noah Harari', genre: 'Non-Fiction', year: 2011, pages: 443 },
-      { id: 5, title: 'Dune', author: 'Frank Herbert', genre: 'Sci-Fi', year: 1965, pages: 412 },
-    ]
-  }
+onMounted(() => {
+  produto.reset();
+  produto.carregarListaTiposProdutos()
+  produto.carregarLista();
+});
 </script>
