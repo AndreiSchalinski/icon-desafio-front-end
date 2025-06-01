@@ -4,7 +4,7 @@
       :headers="produto.listHeader"
       :items="produto.listProdutos"
       :hide-default-footer="true"
-      no-data-text="Sem tipos de produtos cadastrados"
+      no-data-text="Sem produtos cadastrados"
     >
       <template v-slot:top>
         <v-toolbar flat>
@@ -23,7 +23,7 @@
             class="me-2 text-caption"
             prepend-icon="mdi-plus"
             rounded="lg"
-            text="Tipo produto"
+            text="Produto"
             border
             @click="produto.adicionar()"
           ></v-btn>
@@ -73,7 +73,7 @@
     </v-data-table>
   </v-sheet>
 
-  <v-dialog v-if="!produto.isRemove" v-model="produto.dialog" max-width="500">
+  <v-dialog v-if="!produto.isRemove" v-model="produto.dialog" max-width="800">
     <v-card
       :subtitle="`${produto.isEditing ? 'Editar' : 'Adicionar'} produto`"
       :title="`${produto.isEditing ? 'Editar' : 'Adicionar'} produto`"
@@ -96,20 +96,21 @@
 
           <v-col cols="12" md="6">
             <v-select
-              v-model="produto.produto.tipoProdutoId"
-              :items="['Fiction', 'Dystopian', 'Non-Fiction', 'Sci-Fi']"
+              v-model="produto.produto.tipoProduto"
+              :items="produto.listTipoProduto"
               label="Tipo de produto"
-              item-title="text"
-              item-value="value"
+              item-title="nome"
+              item-value="id"
+              return-object
             ></v-select>
           </v-col>
 
           <v-col cols="12" md="6">
             <v-number-input
               v-model="produto.produto.precoFornecedor"
-              :max="adapter.getYear(adapter.date())"
-              :min="1"
+              :min="0.01"
               label="Preço no fornecedor"
+              :precision="2"
             ></v-number-input>
           </v-col>
 
@@ -179,7 +180,7 @@ const produto = produtoStore();
 
 onMounted(() => {
   produto.reset();
-  produto.carregarListaTiposProdutos()
+  produto.carregarListaTiposProdutos();
   produto.carregarLista();
 });
 </script>
