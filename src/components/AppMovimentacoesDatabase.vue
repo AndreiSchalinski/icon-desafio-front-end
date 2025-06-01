@@ -45,13 +45,13 @@
               <v-btn
                 width="100%"
                 class="text-caption"
-                prepend-icon="mdi-pencil"
-                text="Editar"
+                prepend-icon="mdi-rename"
+                text="Detalhamento"
                 variant="flat"
                 color="black"
                 size="small"
                 rounded="lg"
-                @click="movimento.editar(item)"
+                @click="movimento.detalharMovimentacao(item)"
               ></v-btn>
             </v-list-item>
             <v-list-item>
@@ -76,31 +76,39 @@
   <v-dialog
     v-if="!movimento.isRemove"
     v-model="movimento.dialog"
-    width="800px"
+    width="1000px"
     height="1000px"
   >
     <v-card
       :subtitle="`${
-        movimento.isEditing ? 'Editar' : 'Adicionar'
+        movimento.isReadOnly ? 'Todas as informações desta' : 'Adicionar'
       } movimentação de estoque`"
       :title="`${
-        movimento.isEditing ? 'Editar' : 'Adicionar'
+        movimento.isReadOnly ? 'Detalhamento' : 'Adicionar'
       } movimentação de estoque`"
     >
       <template v-slot:text>
-        <v-item-group selected-class="bg-primary">
+        <v-item-group
+          selected-class="bg-black"
+          v-model="movimento.movimento.tipo"
+        >
           <v-container>
             <v-row>
               <v-col cols="12" class="text-center"
                 ><p style="font-size: 25px">
-                  Selecione o tipo de movimentação
+                  {{
+                    movimento.isReadOnly
+                      ? "Movimentação selecionada"
+                      : "Selecione o tipo de movimentação"
+                  }}
                 </p></v-col
               >
             </v-row>
             <v-row>
-              <v-col v-for="n in 2" :key="n" cols="12" md="6">
+              <v-col v-for="tipo in 2" :key="tipo" cols="12" md="6">
                 <v-item v-slot="{ isSelected, selectedClass, toggle }">
                   <v-card
+                    :disabled="movimento.isReadOnly"
                     :class="['d-flex align-center', selectedClass]"
                     height="100"
                     width="100%"
@@ -109,7 +117,7 @@
                     @click="
                       () => {
                         toggle();
-                        movimento.handleChange(n, isSelected);
+                        movimento.handleChange(tipo, isSelected);
                       }
                     "
                   >
@@ -119,10 +127,10 @@
                     >
                       {{
                         isSelected
-                          ? n == 1
+                          ? tipo == 1
                             ? `ENTRADA`
                             : `SAIDA`
-                          : n == 1
+                          : tipo == 1
                           ? `ENTRADA`
                           : `SAIDA`
                       }}
@@ -137,6 +145,7 @@
         <v-row class="mt-10">
           <v-col cols="12" md="4">
             <v-number-input
+              :readonly="movimento.isReadOnly"
               v-model="movimento.movimentacao.valorVenda"
               :min="0.01"
               label="Valor de venda"
@@ -145,13 +154,14 @@
           </v-col>
           <v-col cols="12" md="4">
             <v-date-input
+              :readonly="movimento.isReadOnly"
               label="Data venda"
               v-model="movimento.movimentacao.dataVenda"
-              
             ></v-date-input>
           </v-col>
           <v-col cols="12" md="4">
             <v-number-input
+              :readonly="movimento.isReadOnly"
               v-model="movimento.movimentacao.quantidadeMovimentada"
               :min="1"
               label="Quantidade movimentada"
@@ -169,7 +179,7 @@
                 item-value="name"
                 items-per-page="5"
                 return-object
-                show-select
+                :show-select="!movimento.isReadOnly"
                 select-strategy="single"
                 no-data-text="Sem produtos selecionados para movimentação"
                 hide-default-footer
@@ -198,7 +208,7 @@
       <v-card-actions class="bg-surface-light">
         <v-btn
           class="text-caption"
-          text="Cancelar"
+          :text="movimento.isReadOnly ? `Voltar` : `Cancelar`"
           variant="plain"
           @click="movimento.dialog = false"
         ></v-btn>
@@ -206,6 +216,7 @@
         <v-spacer></v-spacer>
 
         <v-btn
+          :disabled="movimento.isReadOnly"
           class="text-caption"
           text="Salvar"
           @click="movimento.salvar()"

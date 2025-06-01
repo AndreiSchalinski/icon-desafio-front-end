@@ -10,7 +10,7 @@ import { defineStore } from "pinia";
 export const movimentacaoStore = defineStore("movimentacaoStore", {
   state: () => ({
     dialog: false,
-    isEditing: false,
+    isReadOnly: false,
     isRemove: false,
     listHeader: [
       { title: "Cód", key: "id", align: "start" },
@@ -38,6 +38,9 @@ export const movimentacaoStore = defineStore("movimentacaoStore", {
     ],
     listProdutos: [],
     isSelected: null,
+    movimento: {
+      tipo: null,
+    },
   }),
   actions: {
     adicionar() {
@@ -56,19 +59,23 @@ export const movimentacaoStore = defineStore("movimentacaoStore", {
     async salvar() {
       this.setValueObjects();
 
-      if (this.isEditing) {
-        await editarMovimentacao(this.movimentacao);
-      } else {
-        console.log(this.movimentacao);
-        await salvarMovimentacao(this.movimentacao);
-      }
+      await salvarMovimentacao(this.movimentacao);
+
       this.reset();
       this.carregarLista();
     },
 
-    editar(item) {
+    detalharMovimentacao(item) {
+      this.listProdutos = [];
+
       this.movimentacao = { ...item };
-      this.isEditing = true;
+
+      this.listProdutos.push({ ...item.produto });
+
+      this.movimento.tipo =
+        this.movimentacao.tipoMovimentacao == "ENTRADA" ? 0 : 1;
+
+      this.isReadOnly = true;
       this.dialog = true;
     },
 
@@ -114,8 +121,9 @@ export const movimentacaoStore = defineStore("movimentacaoStore", {
 
     reset() {
       this.dialog = false;
-      this.isEditing = false;
+      this.isReadOnly = false;
       this.isRemove = false;
+      this.movimento.tipo = null;
     },
   },
   getters: {},
