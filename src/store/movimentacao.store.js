@@ -18,7 +18,7 @@ export const movimentacaoStore = defineStore("movimentacaoStore", {
       { title: "Data de venda", key: "dataVenda" },
       { title: "Quantidade", key: "quantidadeMovimentada" },
       { title: "Valor Venda", key: "valorVenda" },
-      { title: "Ações", key: "actions", align: "end", sortable: false },
+      { title: "Ações", key: "actions", sortable: false, align: "end" },
     ],
     listMovimentacoes: [],
     movimentacao: {
@@ -41,6 +41,8 @@ export const movimentacaoStore = defineStore("movimentacaoStore", {
       tipo: null,
     },
     produtoSelecionado: [],
+    isError: false,
+    messageError: "",
   }),
   actions: {
     adicionar() {
@@ -57,12 +59,22 @@ export const movimentacaoStore = defineStore("movimentacaoStore", {
     },
 
     async salvar() {
-      this.setValueObjects();
+      try {
+        this.setValueObjects();
 
-      await salvarMovimentacao(this.movimentacao);
+        await salvarMovimentacao(this.movimentacao);
 
-      this.reset();
-      this.carregarLista();
+        this.reset();
+        this.carregarLista();
+      } catch (error) {
+        this.dialog = true;
+        this.isError = true;
+
+        if (error.response && error.response.status === 400) {
+          this.messageError = error.response.data.message;
+        }
+        this.produtoSelecionado = []
+      }
     },
 
     async detalharMovimentacao(item) {
@@ -126,6 +138,7 @@ export const movimentacaoStore = defineStore("movimentacaoStore", {
       this.isReadOnly = false;
       this.isRemove = false;
       this.movimento.tipo = null;
+      this.isError = false;
     },
   },
   getters: {},

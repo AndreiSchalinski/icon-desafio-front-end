@@ -12,9 +12,11 @@
           start
         ></v-icon>
 
-        Todos as movimentações
+        Gestão de estoque e movimentações
       </v-toolbar-title>
     </v-toolbar>
+    <AppDashboardBalancoEstoque />
+    <AppDashboardRelatorioMovimentacao />
   </v-container>
 </template>
 <script setup>
@@ -23,6 +25,5 @@ import { useRoute } from "vue-router";
 const route = useRoute();
 
 const routeName = route.name;
-
 </script>
 <style lang=""></style>

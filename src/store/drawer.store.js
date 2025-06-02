@@ -21,7 +21,7 @@ export const drawerStore = defineStore("drawerStore", {
       },
       {
         props: {
-          prependIcon: "mdi-home-city",
+          prependIcon: "mdi-shape",
         },
         title: "Produtos",
         path: "/produtos",
@@ -29,7 +29,7 @@ export const drawerStore = defineStore("drawerStore", {
       },
       {
         props: {
-          prependIcon: "mdi-home-variant",
+          prependIcon: "mdi-store",
         },
         title: "Movimentações",
         path: "/movimentacoes",
