@@ -11,7 +11,7 @@
           <v-toolbar-title>
             <v-icon
               color="medium-emphasis"
-              icon="mdi-book-multiple"
+              icon="mdi-store"
               size="x-small"
               start
             ></v-icon>
@@ -52,19 +52,6 @@
                 size="small"
                 rounded="lg"
                 @click="movimento.detalharMovimentacao(item)"
-              ></v-btn>
-            </v-list-item>
-            <v-list-item>
-              <v-btn
-                width="100%"
-                class="text-caption"
-                prepend-icon="mdi-delete"
-                text="Excluir"
-                variant="flat"
-                color="red"
-                size="small"
-                rounded="lg"
-                @click="movimento.remover(item)"
               ></v-btn>
             </v-list-item>
           </v-list>
@@ -224,15 +211,12 @@
       </v-card-actions>
     </v-card>
   </v-dialog>
-  <v-dialog v-else v-model="movimento.dialog" max-width="500">
-    <v-card
-      subtitle="Atenção, você removerá tipo produto!"
-      title="Deletar tipo de produto"
-    >
+  <v-dialog v-if="movimento.isError" v-model="movimento.dialog" max-width="500">
+    <v-card subtitle="" title="Atenção!">
       <template v-slot:text>
         <v-row>
           <v-col cols="12" class="text-center">
-            {{ `Deletar ?` }}
+            {{ movimento.messageError }}
           </v-col>
         </v-row>
       </template>
@@ -240,18 +224,8 @@
       <v-divider />
 
       <v-card-actions class="bg-surface-light">
-        <v-btn
-          class="text-caption"
-          text="Cancelar"
-          variant="plain"
-          @click="(movimento.dialog = false), (movimento.isRemove = false)"
-        />
         <v-spacer />
-        <v-btn
-          class="text-caption"
-          text="Deletar"
-          @click="movimento.delete()"
-        />
+        <v-btn class="text-caption" text="Ok" @click="movimento.reset()" />
       </v-card-actions>
     </v-card>
   </v-dialog>

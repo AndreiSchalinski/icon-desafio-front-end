@@ -11,7 +11,7 @@
           <v-toolbar-title>
             <v-icon
               color="medium-emphasis"
-              icon="mdi-book-multiple"
+              icon="mdi-shape"
               size="x-small"
               start
             ></v-icon>
