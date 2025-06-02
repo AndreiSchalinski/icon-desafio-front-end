@@ -173,7 +173,7 @@
           <v-col cols="12">
             <v-sheet border rounded elevation="2"
               ><v-data-table
-                v-model="movimento.movimentacao.produto"
+                v-model="movimento.produtoSelecionado"
                 :headers="movimento.headersProdutos"
                 :items="movimento.listProdutos"
                 item-value="name"
@@ -193,7 +193,7 @@
                         start
                       ></v-icon>
 
-                      Todos os produtos
+                      Selecionar produto
                     </v-toolbar-title>
                   </v-toolbar>
                 </template></v-data-table
