@@ -4,7 +4,7 @@ import {
   getListMovimentacao,
   salvarMovimentacao,
 } from "@/service/movimentacao.service";
-import { getListProduto } from "@/service/produto.service";
+import { getListProduto, getProduto } from "@/service/produto.service";
 import { defineStore } from "pinia";
 
 export const movimentacaoStore = defineStore("movimentacaoStore", {
@@ -22,36 +22,36 @@ export const movimentacaoStore = defineStore("movimentacaoStore", {
     ],
     listMovimentacoes: [],
     movimentacao: {
+      produtoId: null,
       tipoMovimentacao: null,
       valorVenda: null,
       dataVenda: null,
       quantidadeMovimentada: null,
-      produto: null,
     },
-    produtosSelecionados: [],
     headersProdutos: [
       { title: "Cód", key: "codigo", align: "start" },
       { title: "Descrição", key: "descricao" },
       { title: "Tipo de produto", key: "tipoProduto.nome" },
       { title: "Preço no fornecedor", key: "precoFornecedor" },
-      { title: "Quantidade", key: "quantidade" },
+      { title: "Quantidade disponível", key: "quantidade" },
     ],
     listProdutos: [],
     isSelected: null,
     movimento: {
       tipo: null,
     },
+    produtoSelecionado: [],
   }),
   actions: {
     adicionar() {
       this.reset();
       this.carregarListaProdutos();
       this.movimentacao = {
+        produtoId: null,
         tipoMovimentacao: null,
         valorVenda: null,
         dataVenda: null,
         quantidadeMovimentada: null,
-        produto: null,
       };
       this.dialog = true;
     },
@@ -65,12 +65,14 @@ export const movimentacaoStore = defineStore("movimentacaoStore", {
       this.carregarLista();
     },
 
-    detalharMovimentacao(item) {
+    async detalharMovimentacao(item) {
       this.listProdutos = [];
 
       this.movimentacao = { ...item };
 
-      this.listProdutos.push({ ...item.produto });
+      const resp = await getProduto(item.produtoId);
+
+      this.listProdutos.push(resp);
 
       this.movimento.tipo =
         this.movimentacao.tipoMovimentacao == "ENTRADA" ? 0 : 1;
@@ -116,7 +118,7 @@ export const movimentacaoStore = defineStore("movimentacaoStore", {
         .toISOString()
         .slice(0, 10);
 
-      this.movimentacao.produto = this.movimentacao.produto[0];
+      this.movimentacao.produtoId = this.produtoSelecionado[0]?.id;
     },
 
     reset() {
