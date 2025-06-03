@@ -31,9 +31,9 @@ export const movimentacaoStore = defineStore("movimentacaoStore", {
     headersProdutos: [
       { title: "Cód", key: "codigo", align: "start" },
       { title: "Descrição", key: "descricao" },
-      { title: "Tipo de produto", key: "tipoProduto" },
+      { title: "Tipo de produto", key: "" },
       { title: "Preço no fornecedor", key: "precoFornecedor" },
-      { title: "Quantidade disponível", key: "quantidadeMovimentada" },
+      { title: "Quantidade disponível", key: "" },
     ],
     listProdutos: [],
     isSelected: null,
@@ -43,6 +43,7 @@ export const movimentacaoStore = defineStore("movimentacaoStore", {
     produtoSelecionado: [],
     isError: false,
     messageError: "",
+    isAdd: false,
   }),
   actions: {
     adicionar() {
@@ -56,6 +57,8 @@ export const movimentacaoStore = defineStore("movimentacaoStore", {
         quantidadeMovimentada: null,
       };
       this.dialog = true;
+      this.headersProdutos[2].key = 'tipoProduto.nome'
+      this.headersProdutos[4].key = 'quantidade'
     },
 
     async salvar() {
@@ -73,11 +76,14 @@ export const movimentacaoStore = defineStore("movimentacaoStore", {
         if (error.response && error.response.status === 400) {
           this.messageError = error.response.data.message;
         }
-        this.produtoSelecionado = []
+        this.produtoSelecionado = [];
       }
     },
 
     async detalharMovimentacao(item) {
+
+      this.headersProdutos[2].key = 'tipoProduto'
+      this.headersProdutos[4].key = 'quantidadeMovimentada'
 
       this.listProdutos = [];
 
@@ -100,12 +106,6 @@ export const movimentacaoStore = defineStore("movimentacaoStore", {
       };
       this.isRemove = true;
       this.dialog = true;
-    },
-
-    async delete() {
-      await deleteMovimentacao(this.movimentacao?.id);
-      this.reset();
-      this.carregarLista();
     },
 
     async carregarLista() {
@@ -140,6 +140,7 @@ export const movimentacaoStore = defineStore("movimentacaoStore", {
       this.isRemove = false;
       this.movimento.tipo = null;
       this.isError = false;
+      this.isAdd = false;
     },
   },
   getters: {},
