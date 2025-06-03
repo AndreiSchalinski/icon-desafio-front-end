@@ -1,11 +1,11 @@
 import {
-  deleteMovimentacao,
-  editarMovimentacao,
+  getDetalhamentoMovimentacao,
   getListMovimentacao,
   salvarMovimentacao,
 } from "@/service/movimentacao.service";
-import { getListProduto, getProduto } from "@/service/produto.service";
+import { getListProduto } from "@/service/produto.service";
 import { defineStore } from "pinia";
+import { it } from "vuetify/locale";
 
 export const movimentacaoStore = defineStore("movimentacaoStore", {
   state: () => ({
@@ -31,9 +31,9 @@ export const movimentacaoStore = defineStore("movimentacaoStore", {
     headersProdutos: [
       { title: "Cód", key: "codigo", align: "start" },
       { title: "Descrição", key: "descricao" },
-      { title: "Tipo de produto", key: "tipoProduto.nome" },
+      { title: "Tipo de produto", key: "tipoProduto" },
       { title: "Preço no fornecedor", key: "precoFornecedor" },
-      { title: "Quantidade disponível", key: "quantidade" },
+      { title: "Quantidade disponível", key: "quantidadeMovimentada" },
     ],
     listProdutos: [],
     isSelected: null,
@@ -78,11 +78,12 @@ export const movimentacaoStore = defineStore("movimentacaoStore", {
     },
 
     async detalharMovimentacao(item) {
+
       this.listProdutos = [];
 
       this.movimentacao = { ...item };
 
-      const resp = await getProduto(item.produtoId);
+      const resp = await getDetalhamentoMovimentacao(item.id);
 
       this.listProdutos.push(resp);
 
